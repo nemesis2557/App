@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../providers/app_state.dart';
 import 'home_screen.dart';
 import 'post_screen.dart';
 import 'profile_screen.dart';
+import 'email_verification_screen.dart';
 import '../widgets/bottom_nav.dart';
 
 class MainShell extends StatefulWidget {
@@ -48,6 +51,13 @@ class _MainShellState extends State<MainShell> {
 
   @override
   Widget build(BuildContext context) {
+    final appState = Provider.of<AppState>(context);
+    final user = appState.currentUser;
+
+    if (user != null && !user.emailVerified) {
+      return const EmailVerificationScreen();
+    }
+
     return Scaffold(
       body: IndexedStack(
         index: _currentIndex,

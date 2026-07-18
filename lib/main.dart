@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'firebase_options.dart';
 import 'providers/app_state.dart';
 import 'screens/main_shell.dart';
 
@@ -11,8 +12,9 @@ void main() async {
   bool useFirebase = false;
   try {
     // Attempt Firebase initialization
-    // If google-services.json / GoogleService-Info.plist is missing, it will throw an exception
-    await Firebase.initializeApp();
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
     useFirebase = true;
   } catch (e) {
     // Graceful fallback to mock mode

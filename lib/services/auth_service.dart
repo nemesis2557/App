@@ -27,6 +27,7 @@ class AuthService {
           id: user.uid,
           nombre: user.displayName ?? 'Usuario registrado',
           correo: user.email ?? '',
+          emailVerified: user.emailVerified,
         );
       });
     } else {
@@ -42,6 +43,7 @@ class AuthService {
         id: user.uid,
         nombre: user.displayName ?? 'Usuario registrado',
         correo: user.email ?? '',
+        emailVerified: user.emailVerified,
       );
     } else {
       return _currentMockUser;
@@ -60,6 +62,7 @@ class AuthService {
           id: user.uid,
           nombre: user.displayName ?? 'Usuario registrado',
           correo: user.email ?? '',
+          emailVerified: user.emailVerified,
         );
       }
       return null;
@@ -80,6 +83,7 @@ class AuthService {
         id: 'mock-user-123',
         nombre: email.split('@')[0].toUpperCase(),
         correo: email,
+        emailVerified: false, // starts unverified for flow testing
       );
       _mockAuthStreamController.add(_currentMockUser);
       return _currentMockUser;
@@ -95,10 +99,12 @@ class AuthService {
       final user = credential.user;
       if (user != null) {
         await user.updateDisplayName(nombre);
+        await user.sendEmailVerification();
         return AppUser(
           id: user.uid,
           nombre: nombre,
           correo: email,
+          emailVerified: user.emailVerified,
         );
       }
       return null;
@@ -117,9 +123,50 @@ class AuthService {
         id: 'mock-user-${DateTime.now().millisecondsSinceEpoch}',
         nombre: nombre,
         correo: email,
+        emailVerified: false, // starts unverified
       );
       _mockAuthStreamController.add(_currentMockUser);
       return _currentMockUser;
+    }
+  }
+
+  Future<AppUser?> reloadCurrentUser() async {
+    if (_useFirebase && _auth != null) {
+      final user = _auth!.currentUser;
+      if (user != null) {
+        await user.reload();
+        final updatedUser = _auth!.currentUser;
+        if (updatedUser == null) return null;
+        return AppUser(
+          id: updatedUser.uid,
+          nombre: updatedUser.displayName ?? 'Usuario registrado',
+          correo: updatedUser.email ?? '',
+          emailVerified: updatedUser.emailVerified,
+        );
+      }
+      return null;
+    } else {
+      if (_currentMockUser != null) {
+        _currentMockUser = AppUser(
+          id: _currentMockUser!.id,
+          nombre: _currentMockUser!.nombre,
+          correo: _currentMockUser!.correo,
+          emailVerified: true, // Mark verified on reload to allow testing the flow in mock mode
+        );
+        _mockAuthStreamController.add(_currentMockUser);
+      }
+      return _currentMockUser;
+    }
+  }
+
+  Future<void> sendVerificationEmail() async {
+    if (_useFirebase && _auth != null) {
+      final user = _auth!.currentUser;
+      if (user != null) {
+        await user.sendEmailVerification();
+      }
+    } else {
+      await Future.delayed(const Duration(milliseconds: 500));
     }
   }
 

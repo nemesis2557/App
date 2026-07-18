@@ -110,6 +110,28 @@ class AppState extends ChangeNotifier {
     }
   }
 
+  Future<void> reloadCurrentUser() async {
+    _isLoading = true;
+    notifyListeners();
+    try {
+      _currentUser = await _authService.reloadCurrentUser();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> sendVerificationEmail() async {
+    _isLoading = true;
+    notifyListeners();
+    try {
+      await _authService.sendVerificationEmail();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
   Future<void> signOut() async {
     _isLoading = true;
     notifyListeners();
