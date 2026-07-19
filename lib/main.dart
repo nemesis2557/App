@@ -2,25 +2,39 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'firebase_options.dart';
 import 'providers/app_state.dart';
 import 'screens/main_shell.dart';
 
 void main() async {
+  // Asegura que Flutter esté listo antes de usar las bases de datos
   WidgetsFlutterBinding.ensureInitialized();
-  
+
+  // 1. Inicialización correcta de Supabase con tus credenciales reales
+  try {
+    await Supabase.initialize(
+      url: 'https://rajyoocvvvtfvmjyhbki.supabase.co',
+      anonKey: 'sb_publishable_NdghGAS-tMG9b1c4ikipLA_q-nJz2wzF1vAnbMREmP', 
+    );
+    debugPrint("Supabase se inicializó correctamente.");
+  } catch (e) {
+    debugPrint("Error crítico al inicializar Supabase: $e");
+  }
+
+  // 2. Intento seguro de inicializar Firebase
   bool useFirebase = false;
   try {
-    // Attempt Firebase initialization
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
     useFirebase = true;
+    debugPrint("Firebase inicializado con éxito.");
   } catch (e) {
-    // Graceful fallback to mock mode
-    debugPrint("Firebase could not be initialized. Running in MOCK/OFFLINE mode: $e");
+    debugPrint("Firebase no se pudo inicializar. Corriendo en modo MOCK/OFFLINE: $e");
   }
 
+  // 3. Lanzamiento de la aplicación con sus Providers
   runApp(
     MultiProvider(
       providers: [
